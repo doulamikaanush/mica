@@ -14,7 +14,7 @@ permissions:
 jobs:
   keepalive:
     runs-on: ubuntu-latest
-    timeout-minutes: 3
+    timeout-minutes: 5
     steps:
       - name: Send safe database activity
         env:
@@ -22,7 +22,13 @@ jobs:
           SUPABASE_PUBLISHABLE_KEY: sb_publishable_IwuZWS2JmvU1uSvDITK5xQ_YQ7XGtXx
         run: |
           for attempt in 1 2 3; do
-            status=$(curl --silent --show-error --output /tmp/motherna-supabase-response.json --write-out "%{http_code}" \
+            status=$(curl --silent --show-error \
+              --retry 6 \
+              --retry-all-errors \
+              --retry-delay 10 \
+              --connect-timeout 20 \
+              --output /tmp/motherna-supabase-response.json \
+              --write-out "%{http_code}" \
               "$SUPABASE_URL/rest/v1/admin_allowlist?select=created_at&limit=1" \
               --header "apikey: $SUPABASE_PUBLISHABLE_KEY")
 
